@@ -130,3 +130,12 @@ dmypy.json
 
 # Zip
 .zip
+
+#scrips
+
+restore.py
+
+#data
+
+.csv
+

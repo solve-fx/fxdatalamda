@@ -13,13 +13,20 @@ def lambda_handler(event, context):
     extract_start = str(current_year)+"-"+str(current_month)+"-"+extract_start_day
     extract_end = date.today() + timedelta(days=10)
 
-
     #Current Data
     current_file_loc = 's3://bucket-fxdata/gbpjpy/oneminute/'+str(current_year)+'_'+str(current_month).zfill(2)+'.csv'
-    current_data = pd.read_csv(current_file_loc)
-    current_data.columns = ['Datetime','Open','High','Low','Close']
-    current_data['Datetime'] = pd.to_datetime(current_data['Datetime'] , format = '%Y-%m-%d %H:%M:%S')
-    current_data = current_data.set_index('Datetime')
+    try:
+        current_data = pd.read_csv(current_file_loc)
+        current_data.columns = ['datetime','Open','High','Low','Close']
+        current_data['datetime'] = pd.to_datetime(current_data['datetime'] , format = '%Y-%m-%d %H:%M:%S')
+        current_data = current_data.set_index('datetime')
+    except:
+        old_file_loc = 's3://bucket-fxdata/gbpjpy/oneminute/2021_12.csv'
+        old_data = pd.read_csv(old_file_loc)
+        old_data.columns = ['datetime','Open','High','Low','Close']
+        old_data['datetime'] = pd.to_datetime(old_data['datetime'] , format = '%Y-%m-%d %H:%M:%S')
+        old_data = old_data.set_index('datetime')
+        current_data = old_data.head(0)
 
     #New Data
     new_data = yf.download(tickers = 'GBPJPY=X' , start=extract_start, end=extract_end, interval = '1m')
@@ -41,6 +48,7 @@ def lambda_handler(event, context):
                                   
     current_file_loc_5m = 's3://bucket-fxdata/gbpjpy/fiveminute/'+str(current_year)+'_'+str(current_month).zfill(2)+'.csv'
     
-    unique_data_5m.to_csv(current_file_loc_5m)
+    print(unique_data_5m)
+    #unique_data_5m.to_csv(current_file_loc_5m)
 
     return "Done"
